@@ -137,3 +137,45 @@ BOOLEAN Allocate_VMCS_Region(IN PVirtualMachineState vmState)
 
 	return TRUE;
 }
+
+BOOLEAN Allocate_VMM_Stack(int ProcessorID)
+{
+
+	// Allocate stack for the VM Exit Handler.
+	UINT64 VMM_STACK_VA = ExAllocatePoolWithTag(NonPagedPool, VMM_STACK_SIZE, POOLTAG);
+	vmState[ProcessorID].VMM_Stack = VMM_STACK_VA;
+
+	if (vmState[ProcessorID].VMM_Stack == NULL)
+	{
+		DbgPrint("[*] Error in allocating VMM Stack.\n");
+		return FALSE;
+	}
+	RtlZeroMemory(vmState[ProcessorID].VMM_Stack, VMM_STACK_SIZE);
+
+	DbgPrint("[*] VMM Stack for logical processor %d : %llx\n", ProcessorID, vmState[ProcessorID].VMM_Stack);
+
+	return TRUE;
+}
+
+BOOLEAN Allocate_MSR_Bitmap(int ProcessorID)
+{
+
+	// Allocate memory for MSRBitMap
+	vmState[ProcessorID].MSRBitMap = ExAllocatePoolWithTag(NonPagedPool, PAGE_SIZE, POOLTAG);  // should be aligned
+
+	if (vmState[ProcessorID].MSRBitMap == NULL)
+	{
+		DbgPrint("[*] Error in allocating MSRBitMap.\n");
+		return FALSE;
+	}
+	RtlZeroMemory(vmState[ProcessorID].MSRBitMap, PAGE_SIZE);
+
+	vmState[ProcessorID].MSRBitMapPhysical = VirtualAddress_to_PhysicalAddress(vmState[ProcessorID].MSRBitMap);
+
+	DbgPrint("[*] MSR Bitmap address : %llx\n", vmState[ProcessorID].MSRBitMap);
+
+	// For testing purpose :
+	// SetMSRBitmap(0xc0000082, ProcessorID, TRUE, TRUE);
+
+	return TRUE;
+}

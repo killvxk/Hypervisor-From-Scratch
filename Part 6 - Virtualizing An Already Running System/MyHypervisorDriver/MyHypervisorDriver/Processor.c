@@ -35,6 +35,7 @@ BOOLEAN RunOnProcessor(ULONG ProcessorNumber, PEPTP EPTP, PFUNC Routine)
 
 	Routine(ProcessorNumber, EPTP);
 
+
 	KeLowerIrql(OldIrql);
 
 	KeRevertToUserAffinityThread();

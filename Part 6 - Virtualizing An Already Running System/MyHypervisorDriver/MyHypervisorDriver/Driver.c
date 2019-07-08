@@ -57,7 +57,7 @@ NTSTATUS DrvCreate(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 
 	// Start Virtualizing Current System
 
-		// Initiating EPTP and VMX
+	// Initiating EPTP and VMX
 	PEPTP EPTP = Initialize_EPTP();
 	Initiate_VMX();
 
@@ -68,7 +68,16 @@ NTSTATUS DrvCreate(IN PDEVICE_OBJECT DeviceObject, IN PIRP Irp)
 	{
 		// Launching VM for Test (in the all logical processor)
 		int ProcessorID = i;
+
+		//Allocating VMM Stack
+		Allocate_VMM_Stack(ProcessorID);
+
+		// Allocating MSR Bit 
+		Allocate_MSR_Bitmap(ProcessorID);
+
 		RunOnProcessor(i, EPTP, VMXSaveState);
+		DbgPrint("\n======================================================================================================\n", ProcessorID);
+
 
 	}
 

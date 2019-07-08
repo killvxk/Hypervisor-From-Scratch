@@ -31,6 +31,22 @@ typedef struct _VMX_EXIT_QUALIFICATION_IO_INSTRUCTION
 	};
 } VMX_EXIT_QUALIFICATION_IO_INSTRUCTION, *PVMX_EXIT_QUALIFICATION_IO_INSTRUCTION;
 
+typedef union _MOV_CR_QUALIFICATION
+{
+	ULONG_PTR All;
+	struct
+	{
+		ULONG ControlRegister : 4;
+		ULONG AccessType : 2;
+		ULONG LMSWOperandType : 1;
+		ULONG Reserved1 : 1;
+		ULONG Register : 4;
+		ULONG Reserved2 : 4;
+		ULONG LMSWSourceData : 16;
+		ULONG Reserved3;
+	} Fields;
+} MOV_CR_QUALIFICATION, *PMOV_CR_QUALIFICATION;
+
 // PIN-Based Execution
 #define PIN_BASED_VM_EXECUTION_CONTROLS_EXTERNAL_INTERRUPT				 0x00000001
 #define PIN_BASED_VM_EXECUTION_CONTROLS_NMI_EXITING						 0x00000004
@@ -61,13 +77,14 @@ typedef struct _VMX_EXIT_QUALIFICATION_IO_INSTRUCTION
 #define CPU_BASED_PAUSE_EXITING               0x40000000
 #define CPU_BASED_ACTIVATE_SECONDARY_CONTROLS 0x80000000
 
-#define CPU_BASED_CTL2_ENABLE_EPT				0x2
-#define CPU_BASED_CTL2_RDTSCP					0x8
-#define CPU_BASED_CTL2_ENABLE_VPID				0x20
-#define CPU_BASED_CTL2_UNRESTRICTED_GUEST		0x80
-#define CPU_BASED_CTL2_ENABLE_INVPCID			0x1000
-#define CPU_BASED_CTL2_ENABLE_VMFUNC			0x2000
-#define CPU_BASED_CTL2_ENABLE_XSAVE_XRSTORS		0x100000
+#define CPU_BASED_CTL2_ENABLE_EPT						0x2
+#define CPU_BASED_CTL2_RDTSCP							0x8
+#define CPU_BASED_CTL2_ENABLE_VPID						0x20
+#define CPU_BASED_CTL2_UNRESTRICTED_GUEST				0x80
+#define CPU_BASED_CTL2_VIRTUAL_INTERRUPT_DELIVERY		0x200
+#define CPU_BASED_CTL2_ENABLE_INVPCID					0x1000
+#define CPU_BASED_CTL2_ENABLE_VMFUNC					0x2000
+#define CPU_BASED_CTL2_ENABLE_XSAVE_XRSTORS				0x100000
 
 
 // VM-exit Control Bits 
@@ -294,6 +311,11 @@ enum VMCS_FIELDS {
 #define HYPERV_CPUID_MIN                        0x40000005
 #define HYPERV_CPUID_MAX                        0x4000ffff
 
+// Exit Qualifications for MOV for Control Register Access
+#define TYPE_MOV_TO_CR              0
+#define TYPE_MOV_FROM_CR            1
+#define TYPE_CLTS                   2
+#define TYPE_LMSW                   3
 
 
 extern PVirtualMachineState vmState;
@@ -319,6 +341,9 @@ UINT64 VirtualAddress_to_PhysicalAddress(void* va);
 UINT64 PhysicalAddress_to_VirtualAddress(UINT64 pa);
 BOOLEAN Allocate_VMXON_Region(IN PVirtualMachineState vmState);
 BOOLEAN Allocate_VMCS_Region(IN PVirtualMachineState vmState);
+BOOLEAN Allocate_VMM_Stack(int ProcessorID);
+BOOLEAN Allocate_MSR_Bitmap(int ProcessorID);
+
 UINT64 VMPTRST(void);
 void Run_On_Each_Logical_Processor(void*(*FunctionPtr)());
 int ipow(int base, int exp);

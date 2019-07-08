@@ -42,6 +42,10 @@ VMXSaveState ENDP
 
 VMXRestoreState PROC
 
+	;xor rax,rax
+	;mov  [rax],rax
+
+	
 	add rsp, 28h
 	pop r15
 	pop r14
